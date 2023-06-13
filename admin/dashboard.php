@@ -8,7 +8,6 @@ $admin_id = $_SESSION['admin_id'];
 
 
 if (!isset($admin_id)) {
-    // Assuming the default admin ID is 1
     header('location:admin_login.php');
 }else{
     echo $_SESSION['admin_id'];

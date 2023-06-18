@@ -30,51 +30,23 @@ $result = mysqli_query($conn, $sql);
 ?>
 
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<header>
-        <div class="blog-logo-name">
-            <div class="blog-logo-container">
-                <img src="./assets/techtype-logo.png" alt="">
-            </div>
-            <h1 class="blog-name" ><a href="home.php">Techtype</a></h1>
+<?php include("header.php") ?>
+
+    <section class="profile" style="position: relative; margin-bottom:100px;">
+        <div style="background-color:white; height:250px;">
+            <img style="width: 100%; height:250px; object-fit: cover;" src="./images/connectwithnature.jpg" alt="">
         </div>
-        <nav class="blog-nav">
-            <div class="blog-nav-menu">
-                <li class="sub-nav-menu"><a href="home.php">Home</a></li>
-                <li class="sub-nav-menu"><a href="home.php">About</a></li>
-                <li class="sub-nav-menu"><a href="home.php">Contact us</a></li>
-                <li class="sub-nav-menu"><i class="fa-regular fa-pen-to-square"></i><a href="write-post.php">Write</a></li>
-            </div>
-            <div class="blog-nav-login-profile">
-                <!-- <li class="login-registerbtn"><a href="">Login</a></li> -->
-                <li >
-                    <a href="profile.php" style="display: flex; gap: 10px;" class="sub-nav-menu">
-                        <p ><?php echo $username ?>'s account</p>
-                        <div class="profile-pic">
-                            <i class="fa-solid fa-user" style="font-size: 20px;"></i>
-                        </div>
-                    </a>
-                </li>
-                <li class="login-registerbtn"><a href="logout.php">Sign out</a></li>
-            </div>
-        </nav>
-    </header>
+        <div style="width: 150px; height: 150px; position: absolute; bottom: -60px; left: calc(50% - 75px); background-color:var(--backgroundColor); padding:2px; border-radius:50%;  background-color:white; box-sizing: content-box; border:5px solid var(--backgroundColor) ;">
+            <img style="object-fit: cover; width: 150px; height:150px; border-radius:50%;" src="./assets/profile-pic.png" alt="">
+        </div>
+        <!-- <div style="position: absolute; top: 10px; right:10px; border: 1px solid var(--white); padding:10px; border-radius:10px; background-color:var(--primaryColor)">
+            <p style="color:var(--backgroundColor);">Edit profile</p>
+        </div> -->
+    </section>
     
     <section>
         <h1 style="padding: 20px 0 0 20px;" class="all-blogs-title title">My blog posts</h1>
-        <div class="blog_posts">
+        <div class="blog_posts" >
             
             <?php
                 if ($result) {
@@ -82,21 +54,35 @@ $result = mysqli_query($conn, $sql);
                         foreach ($row as $key => $each_post) {
                             $row[$key] = "$each_post";
                         }
-                                                        
-                        echo '<div class="blog_post">
-                        <div class="blog_post-image-div">
-                            <img src="' . $row['image'] . '" alt="">
+                        $user_id = $row['user_id'];
+                        $user_sql = "SELECT * FROM users WHERE id = $user_id ";
+                        $user_result = mysqli_query($conn, $user_sql);
+                        $user_row = mysqli_fetch_assoc($user_result);
+                                    
+                        echo '<div class="blog_post" >
+                        <div>
+                            <div class="blog_post-image-div"    >
+                                <img src="' . $row['image'] . '" alt="" >
+                            </div>
                         </div>
-                        <div class="blog_post-name-date">
-                            <p>' . $row['created_at'] . '</p>
-                        </div>
-                        <div class="blog_post-title-summary">
-                            <h2><a href="view-post.php?id=' . $row['id'] . '">' . $row['title'] . '</a></h2>
-                            <p>' . $row['summary'] . '</p>
-                        </div>
-                        <div class="edit-or-delete">
-                            <p class="edit"><a href="edit-post.php?id=' . $row['id'] . '">Edit</a></p>
-                            <a class="delete" href="?delete=' . $row['id'] . '">Delete</a>
+                        <div style="display:flex; flex-direction:column; gap:20px; height:100%;  justify-content:space-between; ">
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <div class="blog_post-name-date">
+                                    <p class="blog_post-name">' . ucwords($user_row['username']) . '</p>
+                                    <p>~</p>
+                                    <p>' . $row['created_at'] . '</p>
+                                </div>
+                                <div class="blog_post-title-summary">
+                                    <h2><a href="view-post.php?id=' . $row['id'] . '">' . $row['title'] . '</a></h2>
+                                    <p>' . $row['summary'] . '</p>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="edit-or-delete" style="flex-direction:row; justify-content:center; gap:50px;">
+                                    <p class="edit"><a href="edit-post.php?id=' . $row['id'] . '">Edit</a></p>
+                                    <a class="delete" href="?delete=' . $row['id'] . '">Delete</a>
+                                </div>
+                            </div>
                         </div>
                     </div>';
                     }
@@ -104,7 +90,6 @@ $result = mysqli_query($conn, $sql);
                     echo "Failed to retrieve blog posts.";
                 }
             ?>
-            <div onclick="console.log('hola')"></div>
         </div>
     </section>
 </body>

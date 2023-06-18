@@ -41,6 +41,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = $_POST["title"];
     $content = $_POST["content"];
 
+    // Process the content to preserve paragraphs and spacing
+    $content = nl2br($content);
+
+    // Check if a new image file is uploaded
+    if (isset($_FILES["image"]) && $_FILES["image"]["error"] === 0) {
+        $image = $_FILES["image"]["name"];
+        $image_tmp = $_FILES["image"]["tmp_name"];
+        $image_path = "images/" . $image;
+
+        // Move the uploaded image to the "images" directory
+        move_uploaded_file($image_tmp, $image_path);
+
+        // Update the image path in the database
+        $update_image_sql = "UPDATE blog_posts SET image = ? WHERE id = ? AND user_id = ?";
+        $update_image_stmt = mysqli_prepare($conn, $update_image_sql);
+        mysqli_stmt_bind_param($update_image_stmt, "sii", $image_path, $id, $user_id);
+        mysqli_stmt_execute($update_image_stmt);
+    }
+
     // Update the blog post in the database
     $update_sql = "UPDATE blog_posts SET title = ?, content = ? WHERE id = ? AND user_id = ?";
     $update_stmt = mysqli_prepare($conn, $update_sql);
@@ -58,71 +77,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<header>
-        <div class="blog-logo-name">
-            <div class="blog-logo-container">
-                <img src="./assets/techtype-logo.png" alt="">
-            </div>
-            <h1 class="blog-name" ><a href="home.php">Techtype</a></h1>
+<?php include("./header.php")?>
+
+<section class="create-post-section" style="margin-top: 20px;">
+    <form method="POST" action="" enctype="multipart/form-data">
+        <div class="field">
+            <label for="title">Title:</label>
+            <input type="text" name="title" id="title" value="<?php echo $post['title']; ?>" >
         </div>
-        <nav class="blog-nav">
-            <div class="blog-nav-menu">
-                <li class="sub-nav-menu"><a href="home.php">Home</a></li>
-                <li class="sub-nav-menu"><a href="home.php">About</a></li>
-                <li class="sub-nav-menu"><a href="home.php">Contact us</a></li>
-                <li class="sub-nav-menu"><i class="fa-regular fa-pen-to-square"></i><a href="write-post.php">Write</a></li>
-            </div>
-            <div class="blog-nav-login-profile">
-                <!-- <li class="login-registerbtn"><a href="">Login</a></li> -->
-                <li >
-                    <a href="profile.php" style="display: flex; gap: 10px;" class="sub-nav-menu">
-                        <p ><?php echo $username ?>'s account</p>
-                        <div class="profile-pic">
-                            <i class="fa-solid fa-user" style="font-size: 20px;"></i>
-                        </div>
-                    </a>
-                </li>
-                <li class="login-registerbtn"><a href="logout.php">Sign out</a></li>
-            </div>
-        </nav>
-    </header>
-    
-    <section class="create-post-section" style="margin-top: 20px;">
-        <form method="POST" action="">
-            <div class="field">
-                <label for="title">Title:</label>
-                <input type="text" name="title" id="title" value="<?php echo $post['title']; ?>" >
-            </div>
 
-            
-            <div class="field">
-                <label for="content">Content:</label>
-                <textarea type="text" name="content" id="content"  style="height: 400px;"><?php echo $post['content']; ?></textarea>
-            </div>
-            
+        <div class="field">
+            <label for="content">Content:</label>
+            <textarea type="text" name="content" id="content" style="height: 400px;"><?php echo str_replace("<br />", "", $post['content']); ?></textarea>
+        </div>
+
+        <div class="field">
+            <label for="image">Change image:</label>
             <div>
-                <input style="margin: auto; display:flex;" type="submit" name="submit" id="submit" value="Update"  >
+                <img id="image-preview" class="image-preview" src="<?php echo isset($post['image']) ? $post['image'] : ''; ?>" alt="Image Preview">
             </div>
+            <input style="padding: unset;" type="file" name="image" id="image" onchange="readURL(this);">
+        </div>
 
-            
-            
-            
-            
-            
-        </form>
-    </section>
+        <div>
+            <input style="margin: auto; display:flex;" type="submit" name="submit" id="submit" value="Update">
+        </div>
+    </form>
+</section>
 </body>
+
+
+
+
+
+
+<style>
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    document.getElementById('image-preview').src = e.target.result;
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 </html>
